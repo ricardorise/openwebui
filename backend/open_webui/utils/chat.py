@@ -23,7 +23,7 @@ from open_webui.socket.main import (
 )
 from open_webui.functions import generate_function_chat_completion
 
-from open_webui.routers.openai import (
+from open_webui.routers.ocigenai_openai import (
     generate_chat_completion as generate_openai_chat_completion,
 )
 
@@ -275,12 +275,35 @@ async def generate_chat_completion(
             else:
                 return convert_response_ollama_to_openai(response)
         else:
-            return await generate_openai_chat_completion(
+            result = await generate_openai_chat_completion(
                 request=request,
                 form_data=form_data,
                 user=user,
                 bypass_filter=bypass_filter,
             )
+            
+            # Verificar se é uma resposta de streaming
+            if isinstance(result, StreamingResponse):
+                print(f"StreamingResponse recebido: {result}")
+                print(f"Headers: {result.headers if hasattr(result, 'headers') else 'Sem headers'}")
+                print(f"Media type: {result.media_type if hasattr(result, 'media_type') else 'Sem media type'}")
+                print(f"Status code: {result.status_code if hasattr(result, 'status_code') else 'Sem status code'}")
+                
+                # Criar uma cópia do conteúdo para debug
+                async def debug_stream_content(stream):
+                    chunks = []
+                    async for chunk in stream:
+                        print(f"Chunk recebido: {chunk.decode('utf-8') if isinstance(chunk, bytes) else chunk}")
+                        chunks.append(chunk)
+                        yield chunk
+                
+                # Substituir o conteúdo original pelo conteúdo de debug
+                if hasattr(result, 'body_iterator'):
+                    result.body_iterator = debug_stream_content(result.body_iterator)
+            else:
+                print(f"Resposta não-streaming: {result}")
+                
+            return result
 
 
 chat_completion = generate_chat_completion

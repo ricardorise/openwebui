@@ -65,6 +65,8 @@ from open_webui.routers import (
     images,
     ollama,
     openai,
+    ocigenai,
+    ocigenai_openai,
     retrieval,
     pipelines,
     tasks,
@@ -1130,7 +1132,9 @@ app.mount("/ws", socket_app)
 
 
 app.include_router(ollama.router, prefix="/ollama", tags=["ollama"])
-app.include_router(openai.router, prefix="/openai", tags=["openai"])
+#app.include_router(openai.router, prefix="/openai", tags=["openai"])
+app.include_router(ocigenai_openai.router, prefix="/openai", tags=["ocigenai"])
+#app.include_router(ocigenai.router, prefix="/ocigenai", tags=["ocigenai"])
 
 
 app.include_router(pipelines.router, prefix="/api/v1/pipelines", tags=["pipelines"])
